@@ -52,3 +52,21 @@ class InventoryTransaction(db.Model):
     transaction_type = db.Column(Enum('IN', 'OUT', name='transaction_type_enum'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     transaction_date = db.Column(db.Date, nullable=False)
+    
+@app.route('/customers', methods=['GET'])
+def get_customers():
+    customers = Customer.query.all()  
+    return jsonify([{
+        'customer_id': customer.id,
+        'first_name': customer.first_name,
+        'last_name': customer.last_name,
+        'email': customer.email
+    } for customer in customers])
+
+@app.route('/products', methods=['GET'])
+def get_products():
+    pass
+
+@app.route('/orders/<int:customer_id>', methods=['GET'])
+def get_customer_orders(customer_id):
+    pass
