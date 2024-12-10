@@ -70,8 +70,18 @@ def get_customers():
 
 @app.route('/products', methods=['GET'])
 def get_products():
-    pass
+    products = Product.query.all()
+    return jsonify([{
+        'product_id': product.id,
+        'product_name': product.product_name,
+        'unit_price': str(product.unit_price),
+        'stock_quantity': product.stock_quantity
+    } for product in products])
 
 @app.route('/orders/<int:customer_id>', methods=['GET'])
 def get_customer_orders(customer_id):
+    pass
+
+@app.route('/customers', methods=['POST'])
+def add_customer():
     pass
