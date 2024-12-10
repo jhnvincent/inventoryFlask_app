@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
+import re
 
 app = Flask(__name__)
 
@@ -53,6 +54,10 @@ class InventoryTransaction(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     transaction_date = db.Column(db.Date, nullable=False)
     
+def is_valid_email(email):
+    email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    return bool(re.match(email_regex, email))
+ 
 @app.route('/customers', methods=['GET'])
 def get_customers():
     customers = Customer.query.all()  
