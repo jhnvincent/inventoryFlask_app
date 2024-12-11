@@ -2,16 +2,20 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
 import re
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_bcrypt import Bcrypt
 from datetime import datetime
+from functools import wraps
 
 
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:JV2047labs.?@localhost/inventory'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+app.config['JWT_SECRET_KEY'] = 'admin'
 db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)  
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)  
 
 
 #This is models part
@@ -63,6 +67,34 @@ def is_valid_email(email):
     email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
     return bool(re.match(email_regex, email))
  
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        current_user_claims = get_jwt_identity()  
+        if current_user_claims.get('role') != 'admin':
+            return jsonify({'error': 'Access forbidden: Admins only'}), 403
+        return fn(*args, **kwargs)
+    return wrapper
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({'error': 'Missing email or password'}), 400
+
+    customer = Customer.query.filter_by(email=email).first()
+    if customer and bcrypt.check_password_hash(customer.password, password):
+        access_token = create_access_token(identity=str(customer.id), additional_claims={
+            'email': customer.email,
+            'role': customer.role
+        })
+        return jsonify({'message': 'Login successful', 'access_token': access_token}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
 @app.route('/customers', methods=['GET'])
 def get_customers():
     customers = Customer.query.all()  
@@ -252,6 +284,8 @@ def update_product(id):
         return jsonify({'error': str(e)}), 500
     
 @app.route('/inventory_transactions', methods=['GET'])
+@jwt_required()
+@admin_required
 def get_inventory_transactions():
     transactions = InventoryTransaction.query.all()
     return jsonify([{
