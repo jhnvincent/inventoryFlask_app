@@ -221,3 +221,24 @@ def add_product():
         return jsonify({'product_id': new_product.id}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/customers/<int:id>', methods=['DELETE'])
+def delete_customer(id):
+    customer = Customer.query.get(id)
+    if not customer:
+        return jsonify({'error': 'Customer not found'}), 404
+
+    orders = Order.query.filter_by(customer_id=id).all()
+    for order in orders:
+        for item in order.items:
+            db.session.delete(item)
+        db.session.delete(order)
+
+    db.session.delete(customer)
+
+    try:
+        db.session.commit()
+        return jsonify({'message': f'Customer with ID {id} and their orders have been deleted'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
