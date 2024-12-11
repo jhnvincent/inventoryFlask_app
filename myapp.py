@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
 import re
 from flask_bcrypt import Bcrypt
+from datetime import datetime
+
 
 app = Flask(__name__)
 
@@ -132,3 +134,48 @@ def add_customer():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/orders/<int:customer_id>', methods=['GET'])
+def get_customer_orders(customer_id):
+    orders = Order.query.filter_by(customer_id=customer_id).all()
+    return jsonify([{
+        'order_id': order.id,
+        'date_of_order': order.date_of_order.isoformat(),
+        'order_items': [{
+            'product_id': item.product_id,
+            'product_name': item.product.product_name,  
+            'unit_price': str(item.product.unit_price),  
+            'product_quantity': item.product_quantity,
+            'total_price': str(item.product.unit_price * item.product_quantity)  
+        } for item in order.items]
+    } for order in orders])
+    
+@app.route('/orders', methods=['POST']) 
+def place_order():
+    data = request.get_json()
+    
+    order = Order(customer_id=data['customer_id'], date_of_order=datetime.now())
+    db.session.add(order)
+    db.session.commit()
+
+    for item in data['order_items']:
+        product = Product.query.get(item['product_id'])
+        if not product:
+            return jsonify({'error': f'Product with ID {item["product_id"]} not found'}), 404
+        if product.stock_quantity < item['product_quantity']:
+            return jsonify({'error': f'Insufficient stock for product_id {item["product_id"]}'}), 400
+
+        order_item = OrderItem(order_id=order.id, product_id=product.id, product_quantity=item['product_quantity'])
+        product.stock_quantity -= item['product_quantity']
+
+        transaction = InventoryTransaction(
+            product_id=product.id,
+            transaction_type='OUT',
+            quantity=item['product_quantity'],
+            transaction_date=datetime.now()
+        )
+        db.session.add(order_item)
+        db.session.add(transaction)
+
+    db.session.commit()
+    return jsonify({'order_id': order.id}), 201
