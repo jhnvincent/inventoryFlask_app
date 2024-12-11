@@ -242,3 +242,27 @@ def delete_customer(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/products/<int:id>', methods=['PUT'])
+def update_product(id):
+    data = request.get_json()
+    product = Product.query.get(id)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+
+    product.product_name = data.get('product_name', product.product_name)
+    product.unit_price = data.get('unit_price', product.unit_price)
+    product.stock_quantity = data.get('stock_quantity', product.stock_quantity)
+
+    try:
+        db.session.commit()
+        return jsonify({
+            'product_id': product.id,
+            'product_name': product.product_name,
+            'unit_price': str(product.unit_price),
+            'stock_quantity': product.stock_quantity
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
