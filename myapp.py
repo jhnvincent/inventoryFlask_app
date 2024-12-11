@@ -83,21 +83,6 @@ def get_products():
         'stock_quantity': product.stock_quantity
     } for product in products])
 
-@app.route('/orders/<int:customer_id>', methods=['GET'])
-def get_customer_orders(customer_id):
-    orders = Order.query.filter_by(customer_id=customer_id).all()
-    return jsonify([{
-        'order_id': order.id,
-        'date_of_order': order.date_of_order.isoformat(),
-        'order_items': [{
-            'product_id': item.product_id,
-            'product_name': item.product.product_name,  
-            'unit_price': str(item.product.unit_price),  
-            'product_quantity': item.product_quantity,
-            'total_price': str(item.product.unit_price * item.product_quantity)  
-        } for item in order.items]
-    } for order in orders])
-    
 @app.route('/customers', methods=['POST'])
 def add_customer():
     data = request.get_json()
