@@ -220,8 +220,10 @@ def update_customer(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    
+ 
 @app.route('/products', methods=['POST'])
+@jwt_required()
+@admin_required
 def add_product():
     try:
         data = request.get_json()
@@ -240,6 +242,8 @@ def add_product():
         return jsonify({'error': str(e)}), 500
     
 @app.route('/customers/<int:id>', methods=['DELETE'])
+@jwt_required()
+@admin_required
 def delete_customer(id):
     customer = Customer.query.get(id)
     if not customer:
@@ -261,6 +265,8 @@ def delete_customer(id):
         return jsonify({'error': str(e)}), 500
     
 @app.route('/products/<int:id>', methods=['PUT'])
+@jwt_required()
+@admin_required
 def update_product(id):
     data = request.get_json()
     product = Product.query.get(id)
