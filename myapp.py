@@ -266,3 +266,17 @@ def update_product(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
+@app.route('/inventory_transactions', methods=['GET'])
+def get_inventory_transactions():
+    transactions = InventoryTransaction.query.all()
+    return jsonify([{
+        'transaction_id': transaction.id,
+        'product_id': transaction.product_id,
+        'product_name': transaction.product.product_name,
+        'transaction_type': transaction.transaction_type,
+        'quantity': transaction.quantity,
+        'transaction_date': transaction.transaction_date.isoformat()
+    } for transaction in transactions])
+    
+if __name__ == '__main__':
+    app.run(debug=True)
