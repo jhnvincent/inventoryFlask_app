@@ -179,3 +179,45 @@ def place_order():
 
     db.session.commit()
     return jsonify({'order_id': order.id}), 201
+@app.route('/customers/<int:id>', methods=['PUT'])
+def update_customer(id):
+    customer = Customer.query.get(id)
+
+    if not customer:
+        return jsonify({'error': 'Customer not found'}), 404
+    data = request.get_json()
+
+    if 'email' in data and not is_valid_email(data['email']):
+        return jsonify({'error': 'Invalid email format'}), 400
+    customer.first_name = data.get('first_name', customer.first_name)
+    customer.last_name = data.get('last_name', customer.last_name)
+    customer.email = data.get('email', customer.email)
+    try:
+        db.session.commit()
+        return jsonify({
+            'customer_id': customer.id,
+            'first_name': customer.first_name,
+            'last_name': customer.last_name,
+            'email': customer.email
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/products', methods=['POST'])
+def add_product():
+    try:
+        data = request.get_json()
+        if not data or not all(k in data for k in ('product_name', 'unit_price', 'stock_quantity')):
+            return jsonify({'error': 'Invalid input'}), 400
+
+        new_product = Product(
+            product_name=data['product_name'],
+            unit_price=data['unit_price'],
+            stock_quantity=data['stock_quantity']
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        return jsonify({'product_id': new_product.id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
