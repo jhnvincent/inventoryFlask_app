@@ -76,6 +76,16 @@ def admin_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
+def user_or_admin_required(fn):
+    @wraps(fn)
+    def wrapper(id, *args, **kwargs):  
+        current_user_claims = get_jwt()
+        new_id = str(id) 
+        if current_user_claims.get('role') != 'admin' and  current_user_claims.get('sub') != new_id :
+            return jsonify({'error': 'Access forbidden: You are not authorized to update these details'}), 403
+        return fn(id, *args, **kwargs)
+    return wrapper
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -196,7 +206,10 @@ def place_order():
 
     db.session.commit()
     return jsonify({'order_id': order.id}), 201
+
 @app.route('/customers/<int:id>', methods=['PUT'])
+@jwt_required()
+@user_or_admin_required
 def update_customer(id):
     customer = Customer.query.get(id)
 
