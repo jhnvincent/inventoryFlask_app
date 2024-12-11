@@ -86,6 +86,18 @@ def user_or_admin_required(fn):
         return fn(id, *args, **kwargs)
     return wrapper
 
+def user_order_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):  
+        current_user_claims = get_jwt()
+        data = request.get_json()  
+        customer_id = data.get('customer_id')  
+        
+        if current_user_claims.get('sub') != str(customer_id):
+            return jsonify({'error': 'Access forbidden: You are not authorized to place this order'}), 403
+        return fn(*args, **kwargs)
+    return wrapper
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -177,7 +189,9 @@ def get_customer_orders(customer_id):
         } for item in order.items]
     } for order in orders])
     
-@app.route('/orders', methods=['POST']) 
+@app.route('/orders', methods=['POST'])
+@jwt_required()
+@user_order_required
 def place_order():
     data = request.get_json()
     
