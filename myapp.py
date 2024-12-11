@@ -9,8 +9,8 @@ from functools import wraps
 
 
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:JV2047labs.?@localhost/inventory'
+#change your database when you test cos it will drop the database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:JV2047labs.?@localhost/inventory' #change this
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 app.config['JWT_SECRET_KEY'] = 'admin'
 db = SQLAlchemy(app)
@@ -119,7 +119,7 @@ def login():
 
 @app.route('/customers', methods=['GET'])
 def get_customers():
-    customers = Customer.query.all()  
+    customers = db.session.query(Customer).all()  
     return jsonify([{
         'customer_id': customer.id,
         'first_name': customer.first_name,
@@ -202,7 +202,7 @@ def place_order():
     db.session.commit()
 
     for item in data['order_items']:
-        product = Product.query.get(item['product_id'])
+        product = db.session.get(Product, item['product_id'])
         if not product:
             return jsonify({'error': f'Product with ID {item["product_id"]} not found'}), 404
         if product.stock_quantity < item['product_quantity']:
@@ -227,7 +227,7 @@ def place_order():
 @jwt_required()
 @user_or_admin_required
 def update_customer(id):
-    customer = Customer.query.get(id)
+    customer = db.session.get(Customer, id)
 
     if not customer:
         return jsonify({'error': 'Customer not found'}), 404
@@ -274,7 +274,7 @@ def add_product():
 @jwt_required()
 @admin_required
 def delete_customer(id):
-    customer = Customer.query.get(id)
+    customer = db.session.get(Customer, id)
     if not customer:
         return jsonify({'error': 'Customer not found'}), 404
 
