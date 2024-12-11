@@ -39,6 +39,6 @@ Environment variables needed:
 | /products/<id>	| PUT	| Update a product | admin |
 | /orders/<id>	| GET	| List user's orders | owner |
 | /orders	| POST	| Place your order | owner |
-| /inventory_transactions	| GET	| List all inventory |
+| /inventory_transactions	| GET	| List all inventory | admin |
 
 
