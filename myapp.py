@@ -94,7 +94,7 @@ def user_order_required(fn):
         customer_id = data.get('customer_id')  
         
         if current_user_claims.get('sub') != str(customer_id):
-            return jsonify({'error': 'Access forbidden: You are not authorized to place this order'}), 403
+            return jsonify({'error': 'Access forbidden: You are not authorized to place/see this order'}), 403
         return fn(*args, **kwargs)
     return wrapper
 
@@ -174,9 +174,11 @@ def add_customer():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
-@app.route('/orders/<int:customer_id>', methods=['GET'])
-def get_customer_orders(customer_id):
-    orders = Order.query.filter_by(customer_id=customer_id).all()
+@app.route('/orders/<int:id>', methods=['GET'])
+@jwt_required()
+@user_or_admin_required
+def get_customer_orders(id):
+    orders = Order.query.filter_by(customer_id=id).all()
     return jsonify([{
         'order_id': order.id,
         'date_of_order': order.date_of_order.isoformat(),
