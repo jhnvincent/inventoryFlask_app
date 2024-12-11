@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
 import re
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 from functools import wraps
@@ -70,7 +70,7 @@ def is_valid_email(email):
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        current_user_claims = get_jwt_identity()  
+        current_user_claims = get_jwt()  
         if current_user_claims.get('role') != 'admin':
             return jsonify({'error': 'Access forbidden: Admins only'}), 403
         return fn(*args, **kwargs)
