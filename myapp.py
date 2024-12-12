@@ -98,6 +98,54 @@ def user_order_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
+@app.route("/")
+def hello_world():
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Inventory and Sales</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                color: #333;
+                margin: 0;
+                padding: 0;
+                text-align: center;
+                padding-top: 50px;
+            }
+            button {
+                background-color: #5CD65C;
+                color: white;
+                border: none;
+                padding: 15px 25px;
+                font-size: 1.2em;
+                margin: 10px;
+                cursor: pointer;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            button:hover {
+                background-color: #248F24;
+            }
+            h1 {
+                font-size: 2.5em;
+                color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Inventory and Sales (view only)</h1>
+        <button onclick="window.location.href='/customers'">Customers</button>
+        <button onclick="window.location.href='/products'">Products</button>
+        <button onclick="window.location.href='/inventory_transactions'">Inventory</button>
+    </body>
+    </html>
+    """
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
