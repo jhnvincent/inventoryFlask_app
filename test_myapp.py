@@ -54,10 +54,6 @@ def test_login(client):
     assert response.status_code == 200
     assert 'access_token' in response.json
 
-import pytest
-from unittest.mock import MagicMock
-from myapp import app, db, Customer
-
 @pytest.fixture
 def mock_customers():
     
