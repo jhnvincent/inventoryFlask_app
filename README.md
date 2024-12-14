@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ```
 ## Configuration
 To configure the database:
-1. Upload the ```inventory``` MySQL database to your server or local machine.
+1. Upload the ```inventorydb.sql``` MySQL database to your server or local machine.
 2. Update the database configuration in the Flask app with your database connection details.
 
 Environment variables needed:
